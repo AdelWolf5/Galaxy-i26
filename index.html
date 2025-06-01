@@ -4666,6 +4666,38 @@
             }
         }
 
+        // Test de connexion avec le serveur GitHub
+        function testGitHubConnection() {
+            showMessage('🔍 Test de connexion GitHub...');
+            
+            const statusEl = document.getElementById('audioSystemStatus');
+            const detailsEl = document.getElementById('audioSystemDetails');
+            
+            if (statusEl) statusEl.textContent = 'Test GitHub...';
+            if (detailsEl) detailsEl.textContent = 'Vérification de l\'accès au serveur';
+            
+            fetch('https://github.com/AdelWolf5/MacOS-16-x-HyperOS-3/raw/refs/heads/main/Silhouettes%20(Original%20Mix).mp3', {
+                method: 'HEAD',
+                mode: 'no-cors'
+            }).then(() => {
+                showMessage('✅ Serveur GitHub accessible');
+                if (statusEl) statusEl.textContent = 'GitHub OK';
+                if (detailsEl) detailsEl.textContent = 'Serveur accessible - Problème de format audio';
+                console.log('GitHub accessible - Problème potentiel de format ou CORS');
+            }).catch((error) => {
+                showMessage('❌ GitHub inaccessible - Restrictions réseau/CORS');
+                if (statusEl) statusEl.textContent = 'GitHub bloqué';
+                if (detailsEl) detailsEl.textContent = 'Accès bloqué par sécurité navigateur';
+                console.log('GitHub inaccessible:', error);
+                isAudioSimulated = true;
+                updateAudioStatus('Serveur inaccessible');
+                
+                setTimeout(() => {
+                    showMessage('💡 Normal : Sécurité navigateur bloque l\'audio externe');
+                }, 2000);
+            });
+        }
+
         // Test optionnel de l'audio réel (en arrière-plan)
         function testRealAudioQuietly() {
             // Test silencieux pour détecter si l'audio fonctionne dans d'autres environnements
@@ -4823,15 +4855,20 @@
                 console.log('Test audio en arrière-plan...');
             });
             
+            // Initialisation simple et robuste
+            audioElement = document.getElementById('backgroundMusic');
+            audioElement.volume = volume / 100;
+            
             updateAudioStatus('🎧 Mode simulation optimal');
             
             // Test silencieux en arrière-plan pour détecter l'audio réel éventuel
             setTimeout(() => {
-                testRealAudioQuietly();
+                try {
+                    testRealAudioQuietly();
+                } catch(e) {
+                    console.log('Test audio en arrière-plan échoué - normal');
+                }
             }, 2000);
-            
-            // Note: Dans l'environnement Claude.ai, les ressources externes sont bloquées pour la sécurité
-            // C'est parfaitement normal et le mode simulation offre une excellente expérience
             
             showSimulationInfo();
             updateSystemAudioStatus();
@@ -4847,8 +4884,20 @@
             showMessage('🚀 Galaxy i26 prêt ! Mode simulation musical optimal dans Claude.ai');
         }
 
-        // Démarrer l'application
-        init();
+        // Démarrer l'application avec protection d'erreur
+        try {
+            init();
+        } catch(error) {
+            console.log('Erreur initialisation:', error);
+            // Initialisation minimale de secours
+            if (typeof updateTime === 'function') {
+                updateTime();
+                setInterval(updateTime, 1000);
+            }
+            if (typeof showMessage === 'function') {
+                showMessage('🚀 Galaxy i26 - Mode sécurisé');
+            }
+        }
     </script>
 
 
