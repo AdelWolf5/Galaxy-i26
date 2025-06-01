@@ -3455,8 +3455,9 @@
         }
 
         // Variables pour la simulation musicale
-        let isAudioSimulated = false; // Retenter avec le nouveau repository Galaxy-i26
+        let isAudioSimulated = true; // Mode simulation optimal - Aucun test automatique
         let simulationTimer = null;
+        let audioTestCompleted = true; // Désactiver tous les tests automatiques
 
         // Basculer la musique
         function toggleMusic() {
@@ -4705,29 +4706,45 @@
             });
         }
 
-        // Test optionnel de l'audio réel (en arrière-plan)
+        // Test optionnel de l'audio réel (simplifié et unique)
         function testRealAudioQuietly() {
-            // Test silencieux pour détecter si l'audio fonctionne dans d'autres environnements
-            if (audioElement && !isAudioSimulated) {
-                audioElement.addEventListener('canplay', function() {
-                    console.log('🎉 MIRACLE ! Audio réel détecté !');
-                    isAudioSimulated = false;
-                    updateAudioStatus('🎉 Audio réel disponible !');
-                    showMessage('🎉 Incroyable ! Audio réel fonctionne dans cet environnement !');
-                    
-                    // Proposer de basculer vers l'audio réel
-                    setTimeout(() => {
-                        showMessage('💡 Voulez-vous essayer l\'audio réel ? (Recliquez sur 🎵)');
-                    }, 2000);
-                }, { once: true });
-                
-                audioElement.addEventListener('error', function() {
-                    // Confirmer le mode simulation (silencieusement)
-                    console.log('Confirmation : Mode simulation optimal pour cet environnement');
-                }, { once: true });
-                
-                // Test très discret en arrière-plan
+            if (audioTestCompleted || !audioElement) return;
+            audioTestCompleted = true;
+            
+            console.log('Test unique repository Galaxy-i26...');
+            
+            // Test unique et silencieux
+            const testHandler = function() {
+                console.log('🎉 MIRACLE ! Repository Galaxy-i26 fonctionne !');
+                isAudioSimulated = false;
+                updateAudioStatus('🎉 Audio réel détecté !');
+                showMessage('🎉 Incroyable ! Audio réel avec Galaxy-i26 !');
+            };
+            
+            const errorHandler = function() {
+                console.log('Repository Galaxy-i26 bloqué - Mode simulation optimal');
+                isAudioSimulated = true;
+                updateAudioStatus('🎧 Simulation active');
+            };
+            
+            audioElement.addEventListener('canplay', testHandler, { once: true });
+            audioElement.addEventListener('error', errorHandler, { once: true });
+            
+            // Timeout de sécurité
+            setTimeout(() => {
+                if (audioElement.readyState === 0) {
+                    console.log('Timeout - Confirme mode simulation');
+                    isAudioSimulated = true;
+                    updateAudioStatus('🎧 Mode simulation optimal');
+                }
+            }, 8000);
+            
+            // Lancer le test unique
+            try {
                 audioElement.load();
+            } catch(e) {
+                console.log('Test audio impossible - Mode simulation');
+                isAudioSimulated = true;
             }
         }
 
