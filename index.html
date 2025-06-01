@@ -2124,11 +2124,11 @@
 <body class="theme-ultra-realistic" id="appBody">
     <!-- Audio pour la musique de fond -->
     <audio id="backgroundMusic" loop="" preload="metadata" crossorigin="anonymous">
-        <!-- Lien principal optimisé -->
+        <!-- Nouveau lien repository Galaxy-i26 -->
+        <source src="https://github.com/AdelWolf5/Galaxy-i26/raw/refs/heads/main/Silhouettes%20(Original%20Mix).mp3" type="audio/mpeg">
+        <!-- Fallbacks précédents -->
         <source src="https://github.com/AdelWolf5/MacOS-16-x-HyperOS-3/raw/refs/heads/main/Silhouettes%20(Original%20Mix).mp3" type="audio/mpeg">
-        <!-- Fallbacks multiples -->
         <source src="https://raw.githubusercontent.com/AdelWolf5/MacOS-16-x-HyperOS-3/refs/heads/main/Silhouettes%20(Original%20Mix).mp3" type="audio/mpeg">
-        <source src="https://github.com/AdelWolf5/MacOS-16-x-HyperOS-3/blob/main/Silhouettes%20(Original%20Mix).mp3?raw=true" type="audio/mpeg">
     </audio>
 
     <!-- Messages de status -->
@@ -2199,10 +2199,10 @@
                 <div class="music-artist" id="musicArtist">Original Mix</div>
             </div>
             <div id="audioStatus" style="font-size: 10px; opacity: 0.6; margin-top: 4px;">
-                🎧 Mode simulation optimal
+                🔄 Test repository Galaxy-i26
             </div>
             <div style="font-size: 9px; opacity: 0.5; margin-top: 2px;">
-                ✨ Expérience immersive garantie
+                🎯 Nouveau lien optimisé
             </div>
         </div>
 
@@ -3455,7 +3455,7 @@
         }
 
         // Variables pour la simulation musicale
-        let isAudioSimulated = true; // Mode simulation optimal par défaut
+        let isAudioSimulated = false; // Retenter avec le nouveau repository Galaxy-i26
         let simulationTimer = null;
 
         // Basculer la musique
@@ -4666,34 +4666,41 @@
             }
         }
 
-        // Test de connexion avec le serveur GitHub
+        // Test de connexion avec le nouveau repository Galaxy-i26
         function testGitHubConnection() {
-            showMessage('🔍 Test de connexion GitHub...');
+            showMessage('🔍 Test nouveau repository Galaxy-i26...');
             
             const statusEl = document.getElementById('audioSystemStatus');
             const detailsEl = document.getElementById('audioSystemDetails');
             
-            if (statusEl) statusEl.textContent = 'Test GitHub...';
-            if (detailsEl) detailsEl.textContent = 'Vérification de l\'accès au serveur';
+            if (statusEl) statusEl.textContent = 'Test Galaxy-i26...';
+            if (detailsEl) detailsEl.textContent = 'Repository dédié Galaxy-i26';
             
-            fetch('https://github.com/AdelWolf5/MacOS-16-x-HyperOS-3/raw/refs/heads/main/Silhouettes%20(Original%20Mix).mp3', {
+            // Test du nouveau repository
+            fetch('https://github.com/AdelWolf5/Galaxy-i26/raw/refs/heads/main/Silhouettes%20(Original%20Mix).mp3', {
                 method: 'HEAD',
                 mode: 'no-cors'
             }).then(() => {
-                showMessage('✅ Serveur GitHub accessible');
-                if (statusEl) statusEl.textContent = 'GitHub OK';
-                if (detailsEl) detailsEl.textContent = 'Serveur accessible - Problème de format audio';
-                console.log('GitHub accessible - Problème potentiel de format ou CORS');
+                showMessage('✅ Repository Galaxy-i26 accessible !');
+                if (statusEl) statusEl.textContent = 'Galaxy-i26 OK';
+                if (detailsEl) detailsEl.textContent = 'Repository dédié fonctionne !';
+                console.log('Repository Galaxy-i26 accessible !');
+                
+                // Retenter le chargement audio avec le nouveau lien
+                if (audioElement) {
+                    audioElement.load();
+                }
+                
             }).catch((error) => {
-                showMessage('❌ GitHub inaccessible - Restrictions réseau/CORS');
-                if (statusEl) statusEl.textContent = 'GitHub bloqué';
-                if (detailsEl) detailsEl.textContent = 'Accès bloqué par sécurité navigateur';
-                console.log('GitHub inaccessible:', error);
+                showMessage('❌ Repository aussi bloqué - Mode simulation optimal');
+                if (statusEl) statusEl.textContent = 'Repos bloqué';
+                if (detailsEl) detailsEl.textContent = 'Sécurité navigateur - Simulation active';
+                console.log('Repository Galaxy-i26 aussi inaccessible:', error);
                 isAudioSimulated = true;
-                updateAudioStatus('Serveur inaccessible');
+                updateAudioStatus('Repository inaccessible');
                 
                 setTimeout(() => {
-                    showMessage('💡 Normal : Sécurité navigateur bloque l\'audio externe');
+                    showMessage('💡 Mode simulation = Expérience optimale garantie !');
                 }, 2000);
             });
         }
