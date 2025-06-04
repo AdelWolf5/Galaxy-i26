@@ -850,6 +850,8 @@
         </div>
     </div>
 
+    <audio id="audioPlayer" src="silhouettes-original-mix.mp3" preload="metadata" hidden></audio>
+
     <!-- Interface Jeux simplifiée -->
     <div class="games-overlay" id="gamesOverlay">
         <div class="games-app glass">
@@ -1014,15 +1016,18 @@
             const playBtn = document.getElementById('playBtn');
             const musicCover = document.getElementById('musicCover');
             const musicWidget = document.querySelector('.music-widget');
-            
+            const audioPlayer = document.getElementById('audioPlayer');
+
             if (musicPlaying) {
                 playBtn.textContent = '⏸️';
                 musicWidget.classList.add('playing');
+                audioPlayer.play();
                 startMusicSimulation();
                 showMessage('🎵 Lecture : Silhouettes - Original Mix');
             } else {
                 playBtn.textContent = '▶️';
                 musicWidget.classList.remove('playing');
+                audioPlayer.pause();
                 stopMusicSimulation();
                 showMessage('⏸️ Musique en pause');
             }
@@ -1082,14 +1087,17 @@
 
         function changeVolume(value) {
             volume = value;
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.volume = value / 100;
             showMessage(`🔊 Volume: ${value}%`);
         }
 
         function toggleMute() {
-            isMuted = !isMuted;
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.muted = !audioPlayer.muted;
             const muteBtn = document.getElementById('muteBtn');
-            
-            if (isMuted) {
+
+            if (audioPlayer.muted) {
                 muteBtn.textContent = '🔇';
                 showMessage('🔇 Son coupé');
             } else {
