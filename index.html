@@ -1506,18 +1506,27 @@
                 card.innerHTML = `
                     <div class="book-cover">📖</div>
                     <div class="book-title">${book.title}</div>
-                    <button class="read-btn" onclick="openBook(${i})">Lire</button>
+                    <button class="read-btn">Lire</button>
                 `;
+                card.querySelector('.read-btn').addEventListener('click', e => {
+                    e.stopPropagation();
+                    openBook(i);
+                });
                 grid.appendChild(card);
             });
         }
 
         function openBook(index) {
             currentBook = books[index];
+            if (!currentBook) return;
             currentChapter = 1;
-            isReaderOpen = true;
             loadChapter();
             document.getElementById('readerOverlay').classList.add('active');
+            isReaderOpen = true;
+            if (isBooksOpen) {
+                isBooksOpen = false;
+                document.getElementById('booksOverlay').classList.remove('active');
+            }
             showMessage(`📖 Lecture de "${currentBook.title}"`);
         }
 
