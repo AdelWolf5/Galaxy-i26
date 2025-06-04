@@ -1506,18 +1506,21 @@
                 card.innerHTML = `
                     <div class="book-cover">📖</div>
                     <div class="book-title">${book.title}</div>
-                    <button class="read-btn" onclick="openBook(${i})">Lire</button>
+                    <button class="read-btn" onclick="openBook(${i}, event)">Lire</button>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function openBook(index) {
+        function openBook(index, e) {
+            if (e) e.stopPropagation();
             currentBook = books[index];
             currentChapter = 1;
-            isReaderOpen = true;
             loadChapter();
+            document.getElementById('booksOverlay').classList.remove('active');
+            isBooksOpen = false;
             document.getElementById('readerOverlay').classList.add('active');
+            isReaderOpen = true;
             showMessage(`📖 Lecture de "${currentBook.title}"`);
         }
 
