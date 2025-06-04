@@ -857,6 +857,73 @@
             cursor: default;
         }
 
+        /* === PLAYLIST === */
+        .playlist-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 55;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .playlist-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .playlist-app {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 500px;
+            height: 60%;
+            transition: transform 0.3s ease;
+        }
+
+        .playlist-overlay.active .playlist-app {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .playlist-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .playlist-title {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ec4899, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .playlist-content {
+            padding: 20px;
+            height: calc(100% - 80px);
+            overflow-y: auto;
+        }
+
+        .song-item {
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .song-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         /* === RESPONSIVE === */
         @media (max-width: 480px) {
             .time-display {
@@ -973,8 +1040,8 @@
         <div class="widget glass music-widget" onclick="toggleMusic()">
             <div class="music-cover" id="musicCover">🎵</div>
             <div class="music-info">
-                <h3 id="musicTitle">Silhouettes</h3>
-                <div class="music-artist" id="musicArtist">Original Mix</div>
+                <h3 id="musicTitle"></h3>
+                <div class="music-artist" id="musicArtist"></div>
             </div>
         </div>
     </div>
@@ -1021,17 +1088,28 @@
     <!-- Contrôleur musical -->
     <div class="music-controller glass">
         <div class="controller-content">
-            <button class="control-btn" onclick="toggleMusic()" id="playBtn">
-                ▶️
-            </button>
+            <button class="control-btn" onclick="togglePlaylist()">🎶</button>
+            <button class="control-btn" onclick="prevSong()">⏮️</button>
+            <button class="control-btn" onclick="toggleMusic()" id="playBtn">▶️</button>
+            <button class="control-btn" onclick="nextSong()">⏭️</button>
             <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" oninput="changeVolume(this.value)">
-            <button class="control-btn" onclick="toggleMute()" id="muteBtn">
-                🔊
-            </button>
+            <button class="control-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
         </div>
     </div>
 
-    <audio id="audioPlayer" src="silhouettes-original-mix.mp3" preload="metadata" hidden></audio>
+    <audio id="audioPlayer" preload="metadata" hidden></audio>
+
+    <div class="playlist-overlay" id="playlistOverlay">
+        <div class="playlist-app glass">
+            <div class="playlist-header">
+                <h2 class="playlist-title">🎵 Playlist</h2>
+                <button class="close-btn" onclick="togglePlaylist()">✕</button>
+            </div>
+            <div class="playlist-content">
+                <div id="playlistList"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Interface Jeux simplifiée -->
     <div class="games-overlay" id="gamesOverlay">
@@ -1174,9 +1252,7 @@
         // Variables globales
         let currentTheme = 'ultra-realistic';
         let isCustomizing = false;
-        let musicPlaying = false;
         let volume = 50;
-        let isMuted = false;
         let isGamesOpen = false;
         let isBooksOpen = false;
         let isReaderOpen = false;
@@ -1184,6 +1260,13 @@
         let currentChapter = 1;
         const maxChapter = 20;
         let simulationTimer = null;
+        let playlist = [
+            { title: 'Paname', artist: 'DJ Hamida ft. Camro', file: 'music/Dj Hamida - Paname ft. Camro.mp3' },
+            { title: 'Animals', artist: 'Martin Garrix', file: 'music/[SPOTIFY-DOWNLOADER.COM] Animals.mp3' },
+            { title: 'Silhouettes', artist: 'Original Mix', file: 'music/Silhouettes (Original Mix).mp3' }
+        ];
+        let currentSong = 0;
+        let isPlaylistOpen = false;
 
         // Système de notification amélioré
         let notificationQueue = [];
@@ -1249,60 +1332,104 @@
         }
 
         // === GESTION DE LA MUSIQUE ===
-        function toggleMusic() {
-            musicPlaying = !musicPlaying;
-            const playBtn = document.getElementById('playBtn');
-            const musicCover = document.getElementById('musicCover');
-            const musicWidget = document.querySelector('.music-widget');
-            const audioPlayer = document.getElementById('audioPlayer');
-
-            if (musicPlaying) {
-                playBtn.textContent = '⏸️';
-                musicWidget.classList.add('playing');
-                audioPlayer.play();
-                startMusicSimulation();
-                showMessage('🎵 Lecture : Silhouettes - Original Mix');
+        function togglePlaylist() {
+            isPlaylistOpen = !isPlaylistOpen;
+            const overlay = document.getElementById('playlistOverlay');
+            if (isPlaylistOpen) {
+                overlay.classList.add('active');
             } else {
-                playBtn.textContent = '▶️';
-                musicWidget.classList.remove('playing');
+                overlay.classList.remove('active');
+            }
+        }
+
+        function loadSong(index) {
+            currentSong = index;
+            const track = playlist[index];
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.src = track.file;
+            document.getElementById('musicTitle').textContent = track.title;
+            document.getElementById('musicArtist').textContent = track.artist;
+        }
+
+        function formatTime(t) {
+            const m = Math.floor(t / 60);
+            const s = Math.floor(t % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function playSong(index) {
+            loadSong(index);
+            isPlaylistOpen && togglePlaylist();
+            startPlayback();
+        }
+
+        function startPlayback() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const playBtn = document.getElementById('playBtn');
+            const musicWidget = document.querySelector('.music-widget');
+
+            audioPlayer.play();
+            playBtn.textContent = '⏸️';
+            musicWidget.classList.add('playing');
+            startMusicSimulation();
+            showMessage(`🎵 Lecture : ${playlist[currentSong].title}`);
+        }
+
+        function toggleMusic() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            if (audioPlayer.paused) {
+                startPlayback();
+            } else {
                 audioPlayer.pause();
+                document.getElementById('playBtn').textContent = '▶️';
+                document.querySelector('.music-widget').classList.remove('playing');
                 stopMusicSimulation();
                 showMessage('⏸️ Musique en pause');
             }
         }
 
+        function nextSong() {
+            const next = (currentSong + 1) % playlist.length;
+            playSong(next);
+        }
+
+        function prevSong() {
+            const prev = (currentSong - 1 + playlist.length) % playlist.length;
+            playSong(prev);
+        }
+
+        function renderPlaylist() {
+            const list = document.getElementById('playlistList');
+            list.innerHTML = '';
+            playlist.forEach((track, i) => {
+                const item = document.createElement('div');
+                item.className = 'song-item';
+                item.textContent = track.title;
+                item.onclick = () => playSong(i);
+                list.appendChild(item);
+            });
+        }
+
         function startMusicSimulation() {
-            let progress = 0;
-            let beat = 0;
             const effects = ['🎵', '🎶', '🎼', '🎧', '🔊', '🎹', '🎸', '🥁'];
             const musicCover = document.getElementById('musicCover');
-            const musicTitle = document.getElementById('musicTitle');
             const musicArtist = document.getElementById('musicArtist');
-            
+
             simulationTimer = setInterval(() => {
-                beat = (beat + 1) % 8;
-                progress = (progress + 0.3) % 100;
-                const intensity = Math.sin(progress * 0.1) * 0.3 + 0.7;
-                
-                // Animation rythmée
-                const scale = beat < 2 ? 1.2 * intensity : 1.0;
-                const rotation = Math.sin(progress * 0.05) * 10;
-                
-                musicCover.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
-                musicCover.style.filter = `hue-rotate(${progress * 3.6}deg) brightness(${intensity})`;
-                
+                const audioPlayer = document.getElementById('audioPlayer');
+                const progress = audioPlayer.currentTime;
+                const beat = Math.floor(progress * 2) % effects.length;
+                const intensity = Math.sin(progress) * 0.3 + 0.7;
+
+                musicCover.style.transform = `scale(${1 + Math.sin(progress*2)*0.1})`;
+                musicCover.style.filter = `hue-rotate(${progress * 40}deg) brightness(${intensity})`;
+
                 if (beat === 0) {
                     musicCover.textContent = effects[Math.floor(Math.random() * effects.length)];
                 }
-                
-                // Temps de lecture
-                const totalSeconds = 225;
-                const currentSeconds = Math.floor((progress / 100) * totalSeconds);
-                const minutes = Math.floor(currentSeconds / 60);
-                const seconds = currentSeconds % 60;
-                
-                musicArtist.textContent = `${minutes}:${seconds.toString().padStart(2, '0')} / 3:45`;
-                
+
+                musicArtist.textContent = `${formatTime(progress)} / ${formatTime(audioPlayer.duration || 0)}`;
+
             }, 500);
         }
 
@@ -1310,16 +1437,14 @@
             if (simulationTimer) {
                 clearInterval(simulationTimer);
                 simulationTimer = null;
-                
+
                 const musicCover = document.getElementById('musicCover');
-                const musicTitle = document.getElementById('musicTitle');
                 const musicArtist = document.getElementById('musicArtist');
-                
-                musicCover.style.transform = 'scale(1) rotate(0deg)';
+
+                musicCover.style.transform = 'scale(1)';
                 musicCover.style.filter = 'none';
                 musicCover.textContent = '🎵';
-                musicTitle.textContent = 'Silhouettes';
-                musicArtist.textContent = 'Original Mix';
+                musicArtist.textContent = '';
             }
         }
 
@@ -1470,6 +1595,13 @@
                 }
             });
 
+            // Fermer la playlist en cliquant à l'extérieur
+            document.getElementById('playlistOverlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    togglePlaylist();
+                }
+            });
+
             // Fermer le lecteur en cliquant à l'extérieur
             document.getElementById('readerOverlay').addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -1485,6 +1617,7 @@
                         if (isGamesOpen) toggleGames();
                         if (isReaderOpen) closeBook();
                         if (isBooksOpen) toggleBooks();
+                        if (isPlaylistOpen) togglePlaylist();
                         break;
                     case ' ':
                         e.preventDefault();
@@ -1526,7 +1659,12 @@
             setInterval(updateTime, 1000);
             setupEventListeners();
             addSpecialEffects();
-            
+            renderPlaylist();
+            loadSong(0);
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.volume = volume / 100;
+            audioPlayer.addEventListener('ended', nextSong);
+
             // Message de bienvenue
             setTimeout(() => {
                 showMessage('🚀 Galaxy i26 activé !');
