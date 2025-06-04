@@ -1170,28 +1170,7 @@
             </div>
 
             <div class="books-content">
-                <div class="books-grid">
-                    <div class="book-card">
-                        <div class="book-cover">🌌</div>
-                        <div class="book-title">Aventure Galactique</div>
-                        <button class="read-btn" onclick="openBook('Aventure Galactique')">Lire</button>
-                    </div>
-                    <div class="book-card">
-                        <div class="book-cover">🏜️</div>
-                        <div class="book-title">Mystères du désert</div>
-                        <button class="read-btn" onclick="openBook('Mystères du désert')">Lire</button>
-                    </div>
-                    <div class="book-card">
-                        <div class="book-cover">✨</div>
-                        <div class="book-title">Oasis des étoiles</div>
-                        <button class="read-btn" onclick="openBook('Oasis des étoiles')">Lire</button>
-                    </div>
-                    <div class="book-card">
-                        <div class="book-cover">📜</div>
-                        <div class="book-title">Contes amazigh</div>
-                        <button class="read-btn" onclick="openBook('Contes amazigh')">Lire</button>
-                    </div>
-                </div>
+                <div class="books-grid" id="booksGrid"></div>
             </div>
         </div>
     </div>
@@ -1256,7 +1235,8 @@
         let isGamesOpen = false;
         let isBooksOpen = false;
         let isReaderOpen = false;
-        let currentBook = '';
+        let books = [];
+        let currentBook = null;
         let currentChapter = 1;
         const maxChapter = 20;
         let simulationTimer = null;
@@ -1511,13 +1491,34 @@
             }
         }
 
-        function openBook(title) {
-            currentBook = title;
+        function loadBooks() {
+            fetch('books/books.json')
+                .then(res => res.json())
+                .then(data => { books = data; renderBooks(); });
+        }
+
+        function renderBooks() {
+            const grid = document.getElementById('booksGrid');
+            grid.innerHTML = '';
+            books.forEach((book, i) => {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.innerHTML = `
+                    <div class="book-cover">📖</div>
+                    <div class="book-title">${book.title}</div>
+                    <button class="read-btn" onclick="openBook(${i})">Lire</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openBook(index) {
+            currentBook = books[index];
             currentChapter = 1;
             isReaderOpen = true;
-            updateChapter();
+            loadChapter();
             document.getElementById('readerOverlay').classList.add('active');
-            showMessage(`📖 Lecture de "${title}"`);
+            showMessage(`📖 Lecture de "${currentBook.title}"`);
         }
 
         function closeBook() {
@@ -1525,9 +1526,23 @@
             document.getElementById('readerOverlay').classList.remove('active');
         }
 
-        function updateChapter() {
-            document.getElementById('readerTitle').textContent = `${currentBook} - Chapitre ${currentChapter}`;
-            document.getElementById('chapterContent').textContent = `Contenu du chapitre ${currentChapter}`;
+        function loadChapter() {
+            if (!currentBook) return;
+            const url = `books/${currentBook.folder}/chapitre${currentChapter}.txt`;
+            fetch(url)
+                .then(r => r.text())
+                .then(text => {
+                    document.getElementById('chapterContent').textContent = text;
+                    updateNav();
+                })
+                .catch(() => {
+                    document.getElementById('chapterContent').textContent = '(chapitre manquant)';
+                    updateNav();
+                });
+        }
+
+        function updateNav() {
+            document.getElementById('readerTitle').textContent = `${currentBook.title} - Chapitre ${currentChapter}`;
             document.getElementById('chapterIndicator').textContent = `${currentChapter} / ${maxChapter}`;
             document.getElementById('prevBtn').disabled = currentChapter === 1;
             document.getElementById('nextBtn').disabled = currentChapter === maxChapter;
@@ -1536,14 +1551,14 @@
         function nextChapter() {
             if (currentChapter < maxChapter) {
                 currentChapter++;
-                updateChapter();
+                loadChapter();
             }
         }
 
         function prevChapter() {
             if (currentChapter > 1) {
                 currentChapter--;
-                updateChapter();
+                loadChapter();
             }
         }
 
@@ -1661,6 +1676,7 @@
             addSpecialEffects();
             renderPlaylist();
             loadSong(0);
+            loadBooks();
             const audioPlayer = document.getElementById('audioPlayer');
             audioPlayer.volume = volume / 100;
             audioPlayer.addEventListener('ended', nextSong);
