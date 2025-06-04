@@ -680,6 +680,183 @@
             opacity: 0.7;
         }
 
+        /* === INTERFACE LIVRES === */
+        .books-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 56;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .books-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .books-app {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 600px;
+            height: 70%;
+            transition: transform 0.3s ease;
+        }
+
+        .books-overlay.active .books-app {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .books-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .books-title {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .books-content {
+            padding: 24px;
+            height: calc(100% - 80px);
+            overflow-y: auto;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .book-card {
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .book-card:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 150px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            background: linear-gradient(135deg, #4338ca, #a855f7);
+        }
+
+        .book-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .read-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .read-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* === LECTEUR DE LIVRE === */
+        .reader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 57;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .reader-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .reader-app {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 600px;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .reader-overlay.active .reader-app {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .reader-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .reader-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .reader-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
         /* === RESPONSIVE === */
         @media (max-width: 480px) {
             .time-display {
@@ -702,6 +879,10 @@
             }
 
             .games-app {
+                width: 95%;
+                height: 85%;
+            }
+            .books-app, .reader-app {
                 width: 95%;
                 height: 85%;
             }
@@ -821,7 +1002,7 @@
                 <span>🎮</span>
                 <div class="app-tooltip">Jeux</div>
             </div>
-            <div class="app-icon app-books" onclick="showMessage('📚 Bibliothèque Galaxy')">
+            <div class="app-icon app-books" onclick="toggleBooks()">
                 <span>📚</span>
                 <div class="app-tooltip">Livres</div>
             </div>
@@ -902,6 +1083,58 @@
         </div>
     </div>
 
+    <!-- Bibliothèque -->
+    <div class="books-overlay" id="booksOverlay">
+        <div class="books-app glass">
+            <div class="books-header">
+                <h2 class="books-title">📚 Bibliothèque Galaxy</h2>
+                <button class="close-btn" onclick="toggleBooks()">🏠</button>
+            </div>
+
+            <div class="books-content">
+                <div class="books-grid">
+                    <div class="book-card">
+                        <div class="book-cover">🌌</div>
+                        <div class="book-title">Aventure Galactique</div>
+                        <button class="read-btn" onclick="openBook('Aventure Galactique')">Lire</button>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-cover">🏜️</div>
+                        <div class="book-title">Mystères du désert</div>
+                        <button class="read-btn" onclick="openBook('Mystères du désert')">Lire</button>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-cover">✨</div>
+                        <div class="book-title">Oasis des étoiles</div>
+                        <button class="read-btn" onclick="openBook('Oasis des étoiles')">Lire</button>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-cover">📜</div>
+                        <div class="book-title">Contes amazigh</div>
+                        <button class="read-btn" onclick="openBook('Contes amazigh')">Lire</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="reader-overlay" id="readerOverlay">
+        <div class="reader-app glass">
+            <div class="reader-header">
+                <button class="close-btn" onclick="closeBook()">←</button>
+                <h3 id="readerTitle">Titre</h3>
+            </div>
+            <div class="reader-content">
+                <p id="chapterContent"></p>
+            </div>
+            <div class="reader-nav">
+                <button class="nav-btn" id="prevBtn" onclick="prevChapter()">Précédent</button>
+                <span id="chapterIndicator"></span>
+                <button class="nav-btn" id="nextBtn" onclick="nextChapter()">Suivant</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Panneau de personnalisation -->
     <div class="customization-overlay" id="customizationOverlay">
         <div class="customization-panel glass">
@@ -945,6 +1178,11 @@
         let volume = 50;
         let isMuted = false;
         let isGamesOpen = false;
+        let isBooksOpen = false;
+        let isReaderOpen = false;
+        let currentBook = '';
+        let currentChapter = 1;
+        const maxChapter = 20;
         let simulationTimer = null;
 
         // Système de notification amélioré
@@ -1127,12 +1365,61 @@
                 'snake': 'Snake Classic',
                 'tetris': 'Tetris Evolution'
             };
-            
+
             showMessage(`🎮 Lancement de ${gameNames[gameType]}...`);
-            
+
             setTimeout(() => {
                 showMessage(`✨ ${gameNames[gameType]} est maintenant disponible !`);
             }, 1500);
+        }
+
+        // === GESTION DES LIVRES ===
+        function toggleBooks() {
+            isBooksOpen = !isBooksOpen;
+            const overlay = document.getElementById('booksOverlay');
+
+            if (isBooksOpen) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+                closeBook();
+            }
+        }
+
+        function openBook(title) {
+            currentBook = title;
+            currentChapter = 1;
+            isReaderOpen = true;
+            updateChapter();
+            document.getElementById('readerOverlay').classList.add('active');
+            showMessage(`📖 Lecture de "${title}"`);
+        }
+
+        function closeBook() {
+            isReaderOpen = false;
+            document.getElementById('readerOverlay').classList.remove('active');
+        }
+
+        function updateChapter() {
+            document.getElementById('readerTitle').textContent = `${currentBook} - Chapitre ${currentChapter}`;
+            document.getElementById('chapterContent').textContent = `Contenu du chapitre ${currentChapter}`;
+            document.getElementById('chapterIndicator').textContent = `${currentChapter} / ${maxChapter}`;
+            document.getElementById('prevBtn').disabled = currentChapter === 1;
+            document.getElementById('nextBtn').disabled = currentChapter === maxChapter;
+        }
+
+        function nextChapter() {
+            if (currentChapter < maxChapter) {
+                currentChapter++;
+                updateChapter();
+            }
+        }
+
+        function prevChapter() {
+            if (currentChapter > 1) {
+                currentChapter--;
+                updateChapter();
+            }
         }
 
         // === GESTION DES MESSAGES ===
@@ -1176,12 +1463,28 @@
                 }
             });
 
+            // Fermer la bibliothèque en cliquant à l'extérieur
+            document.getElementById('booksOverlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    toggleBooks();
+                }
+            });
+
+            // Fermer le lecteur en cliquant à l'extérieur
+            document.getElementById('readerOverlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeBook();
+                }
+            });
+
             // Gestion du clavier
             document.addEventListener('keydown', function(e) {
                 switch(e.key) {
                     case 'Escape':
                         if (isCustomizing) toggleCustomization();
                         if (isGamesOpen) toggleGames();
+                        if (isReaderOpen) closeBook();
+                        if (isBooksOpen) toggleBooks();
                         break;
                     case ' ':
                         e.preventDefault();
